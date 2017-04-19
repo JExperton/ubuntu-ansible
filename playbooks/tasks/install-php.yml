@@ -1,0 +1,27 @@
+
+- name: Install dependencies
+  shell: apt-get install -y software-properties-common
+
+- name: Add ondrej/php ppa
+  apt_repository: repo=ppa:ondrej/php update_cache=yes
+
+- name: Install php{{ version }}
+  apt: name=php{{ version }}
+
+- name: Install php{{ version }} extensions
+  apt: name=php{{ version }}-{{ item }}
+  with_items:
+    - fpm
+    - mysql
+    - mcrypt
+    - mbstring
+    - memcached
+    - intl
+    - zip
+    - dom
+    - xml
+    - curl
+    - gd
+
+- name: Start FPM service
+  shell: service php{{ version }}-fpm start

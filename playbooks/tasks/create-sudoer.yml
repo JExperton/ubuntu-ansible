@@ -1,0 +1,20 @@
+- name: Create user {{ user }}
+  shell: useradd -m -s /bin/bash {{ user }}
+
+- name: Generate password
+  shell: echo '{{ user}}:'$(openssl rand -base64 32) > /home/{{ user }}/conf.txt
+
+- name: Change {{ user }}'s password
+  shell: echo $(cat /home/{{ user }}/conf.txt) | chpasswd --crypt-method=SHA512
+
+- name: Add {{ user }} to sudoers
+  shell: adduser {{ user }} sudo
+
+- name: Create .ssh directory
+  shell: mkdir /home/{{ user }}/.ssh 
+
+- name: Add public keys to {{ user }}
+  copy: src="templates/authorized_keys" dest="/home/{{user}}/.ssh/authorized_keys"
+
+- name: Change permissions
+  shell: chown -R {{user}}:{{user}} /home/{{ user }}/.ssh

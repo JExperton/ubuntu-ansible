@@ -1,0 +1,25 @@
+- name: MySQL | Install server
+  apt: name=mysql-server state=latest
+
+- name: MySQL | Start server
+  shell: /etc/init.d/mysql start
+
+- name: MySQL | Create databases
+  shell: mysql -e "CREATE DATABASE {{ item }} /*\!40100 DEFAULT CHARACTER SET utf8 */;"
+  with_items: "{{ mysql_databases }}"
+
+- name: MySQL | Create user
+  shell: mysql -e "CREATE USER {{ mysql_user }}@localhost IDENTIFIED BY '{{ mysql_passwd }}';"
+
+- name: MySQL | Grant privileges
+  shell: mysql -e "GRANT ALL PRIVILEGES ON {{ item }}.* TO '{{ mysql_user }}'@'localhost';"
+  with_items: "{{ mysql_databases }}"
+
+- name: MySQL | Flush privileges
+  shell: mysql -e "FLUSH PRIVILEGES;"
+
+- name: Copy MySQL backup script
+  copy: src="templates/mysqlbackup" dest="/usr/local/sbin/mysqlbackup"
+
+- name: Change  MySQL backup script permissions
+  shell: chmod +x /usr/local/sbin/mysqlbackup

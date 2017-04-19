@@ -1,0 +1,6 @@
+
+- name: Install memcached
+  apt: name=memcached state=latest
+
+- name: Increase memcached memory size
+  replace: dest=/etc/memcached.conf regexp='^-m \d+$' replace='-m {{ memcached_memory_size }}'

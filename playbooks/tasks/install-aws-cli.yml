@@ -1,0 +1,8 @@
+- name: AWS CLI | Download source
+  shell: curl "https://s3.amazonaws.com/aws-cli/awscli-bundle.zip" -o "awscli-bundle.zip"
+
+- name: AWS CLI | Unzip source
+  shell: unzip awscli-bundle.zip
+
+- name: AWS CLI | Install package
+  shell: ./awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws

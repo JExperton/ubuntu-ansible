@@ -1,0 +1,42 @@
+[DEFAULT]
+bantime = 25920000
+
+[sshd]
+enabled = true
+
+[port-scan]
+enabled   = true
+filter    = port-scan
+logpath   = /var/log/ufw.log
+maxretry  = 2
+banaction = iptables-allports
+protocol  = all
+port      = all
+
+[port-scan-paranoid]
+enabled   = true
+filter    = port-scan-paranoid
+logpath   = /var/log/ufw.log
+maxretry  = 0
+banaction = iptables-allports-blacklist
+protocol  = all
+port      = all
+
+[bruteforce-root]
+enabled   = true
+filter    = bruteforce-root
+logpath   = /var/log/auth.log
+maxretry  = 0
+banaction = iptables-allports-blacklist
+protocol  = all
+port      = all
+
+
+[guess-ssh-user]
+enabled   = true
+filter    = guess-ssh-user
+logpath   = /var/log/auth.log
+maxretry  = 0
+banaction = iptables-allports-blacklist
+protocol  = all
+port      = all

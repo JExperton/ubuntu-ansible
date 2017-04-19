@@ -1,0 +1,11 @@
+- name: Install ufw
+  apt: name=ufw
+
+- name: Set default incoming policy to deny
+  shell: ufw default deny incoming
+
+- name: Set default outgoing policy to allow
+  shell: ufw default allow incoming
+
+- name: Enable OpenSSH default policy
+  shell: ufw allow OpenSSH

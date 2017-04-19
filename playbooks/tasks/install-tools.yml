@@ -1,0 +1,8 @@
+- name: Update cache
+  shell: apt-get update
+
+- name: Update packages
+  shell: apt-get upgrade -y
+
+- name: Install packages
+  shell: apt-get install -y tcptrack htop zip unzip curl nano git
