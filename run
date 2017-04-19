@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+USER="root"
+
+# install ansible if not installed
+if [ ! $(ssh $USER@$1 which ansible-playbook) ]; then
+    ssh -t $USER@$1 "apt-get update \
+    && apt-get install -y software-properties-common \
+    && apt-add-repository ppa:ansible/ansible -y \
+    && apt-get update \
+    && apt-get install -y ansible"
+fi
+
+ansible-playbook -i "$1," $2
