@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+
+# kill and remove the container if running
+if [[ "$(sudo docker ps | grep jexperton/ubuntu-ansible:latest 2> /dev/null)" != "" ]]; then
+    sudo docker kill test
+    sudo docker rm test
+fi
+
+# builds the docker test image
+if [[ "$(sudo docker images -q jexperton/ubuntu-ansible:latest 2> /dev/null)" == "" ]]; then
+    sudo docker build -t jexperton/ubuntu-ansible:latest .
+fi
+
+# install ansible if not installed yet
+if [ ! $(which ansible-playbook) ]; then
+    sudo apt-get update
+    sudo apt-get install -y software-properties-common
+    sudo apt-add-repository ppa:ansible/ansible -y
+    sudo apt-get update
+    sudo apt-get install -y ansible
+fi
+
+# copy the host file
+#if [ ! -f /usr/local/etc/ansible/hosts ]; then
+#    sudo mkdir /usr/local/etc/ansible
+#    sudo echo '[lamp]' > /usr/local/etc/ansible/hosts
+#    sudo echo '192.168.99.100:4022' >> /usr/local/etc/ansible/hosts
+#fi
+
+# run the test container
+sudo docker run -d -p 4022:22 -p 4080:80 --name test -it jexperton/ubuntu-ansible:latest
+
+# run the playbook
+if [ $# -eq 0 ]; then
+    ansible-playbook -i ./hosts playbooks/lamp-test.yml
+else
+    ansible-playbook -i ./hosts $1
+fi
