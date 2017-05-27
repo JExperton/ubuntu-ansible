@@ -1,8 +1,22 @@
-- name: Update cache
-  shell: apt-get update
+- block:
+  - name: Update cache
+    shell: apt update 
 
-- name: Update packages
-  shell: apt-get upgrade -y
+  - name: Update packages
+    shell: apt upgrade -y
 
-- name: Install packages
-  shell: apt-get install -y tcptrack htop zip unzip curl nano git
+  - name: Install {{ item }}
+    shell: apt-get install {{ item }} -y
+    with_items:
+      - tcptrack
+      - htop
+      - zip
+      - unzip
+      - curl
+      - nano
+      - git
+  
+  - name: Remove unecessary packages
+    shell: apt autoremove -y
+
+  become: true
