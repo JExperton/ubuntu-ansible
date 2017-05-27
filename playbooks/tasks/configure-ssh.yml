@@ -1,8 +1,23 @@
-- name: Don't allow SSH root login
-  replace: dest=/etc/ssh/sshd_config regexp='^#?PermitRootLogin yes$' replace='PermitRootLogin no'
+- block:
+  - name: Don't allow SSH root login
+    replace: dest=/etc/ssh/sshd_config regexp='^#?PermitRootLogin(.+)$' replace='PermitRootLogin no'
 
-- name: Don't allow SSH login with password
-  replace: dest=/etc/ssh/sshd_config regexp='^#?PasswordAuthentication yes$' replace='PasswordAuthentication no'
+  - name: Don't allow SSH login with password
+    replace: dest=/etc/ssh/sshd_config regexp='^#?PasswordAuthentication(.+)$' replace='PasswordAuthentication no'
 
-- name: Restart SSH
-  shell: service ssh restart
+  - name: Enable AllowUsers configuration
+    lineinfile:
+      dest: /etc/ssh/sshd_config
+      line: 'AllowUsers'
+      state: present
+      insertafter: EOF
+      create: True
+
+  - name: Add users to the list of authorized SSH users
+    replace: dest=/etc/ssh/sshd_config regexp='^(AllowUsers)(.*)$' replace='\\1 {{ item }}\\2'
+    with_items: '{{ unix.users }}'
+  
+  - name: Restart SSH
+    shell: service ssh restart
+  
+  become: true
