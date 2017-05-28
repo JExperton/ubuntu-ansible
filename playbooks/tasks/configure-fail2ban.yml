@@ -1,8 +1,0 @@
-- name: Install fail2ban
-  shell: apt-get install -y fail2ban
-
-- name: Add custom rules
-  copy: src="templates/fail2ban/" dest="/etc/fail2ban/"
-
-- name: Reload fail2ban
-  shell: service fail2ban restart
