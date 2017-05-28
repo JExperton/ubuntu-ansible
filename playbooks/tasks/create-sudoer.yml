@@ -1,20 +1,35 @@
-- name: Create user {{ user }}
-  shell: useradd -m -s /bin/bash {{ user }}
+- block:
+  - name: Create user "{{ item }}"
+    shell: useradd -m -s /bin/bash {{ item }}
+    with_items: "{{ unix.users }}"
 
-- name: Generate password
-  shell: echo '{{ user}}:'$(openssl rand -base64 32) > /home/{{ user }}/conf.txt
+  - name: Generate "{{ item}}"'s password
+    shell: echo $(openssl rand -base64 32) > /home/{{ item }}/passwd.txt
+    with_items: "{{ unix.users }}"
 
-- name: Change {{ user }}'s password
-  shell: echo $(cat /home/{{ user }}/conf.txt) | chpasswd --crypt-method=SHA512
+  - name: Change "{{ item }}"'s password
+    shell: echo $(cat /home/{{ item }}/passwd.txt) | chpasswd --crypt-method=SHA512
+    with_items: "{{ unix.users }}"
 
-- name: Add {{ user }} to sudoers
-  shell: adduser {{ user }} sudo
+  - name: Add "{{ item }}" to sudoers
+    shell: adduser {{ item }} sudo
+    with_items: "{{ unix.users }}"
 
-- name: Create .ssh directory
-  shell: mkdir /home/{{ user }}/.ssh 
+  - name: Create .ssh directory
+    shell: mkdir /home/{{ item }}/.ssh 
+    with_items: "{{ unix.users }}"
 
-- name: Add public keys to {{ user }}
-  copy: src="templates/authorized_keys" dest="/home/{{user}}/.ssh/authorized_keys"
+  - name: Add public keys to user
+    authorized_key:
+      user: "{{ item.0.name }}"
+      state: present
+      key: "{{ item.1 }}"
+    with_subelements: 
+      - "{{ unix.users }}"
+      - authorized_keys
 
-- name: Change permissions
-  shell: chown -R {{user}}:{{user}} /home/{{ user }}/.ssh
+  - name: Change permissions
+    shell: chown -R {{ item }}:{{ item }} /home/{{ item }}/.ssh
+    with_items: "{{ unix.users }}"
+
+  become: true
