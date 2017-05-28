@@ -1,8 +1,28 @@
-- name: AWS CLI | Download source
-  shell: curl "https://s3.amazonaws.com/aws-cli/awscli-bundle.zip" -o "awscli-bundle.zip"
+- block:
+  - name: AWS CLI | Download source
+    shell: curl "https://s3.amazonaws.com/aws-cli/awscli-bundle.zip" -o "awscli-bundle.zip"
 
-- name: AWS CLI | Unzip source
-  shell: unzip awscli-bundle.zip
+  - name: AWS CLI | Unzip source
+    shell: unzip awscli-bundle.zip
 
-- name: AWS CLI | Install package
-  shell: ./awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws
+  - name: AWS CLI | Install package
+    shell: ./awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws
+
+  - name: Remove install files
+    shell: rm -r ./awscli-bundle && rm ./awscli-bundle.zip
+
+  - name: Create root AWS config folder
+    file: /root/.aws
+    state: directory
+
+  - name: Configure AWS credentials to root user
+    shell: echo "[default]\naws_access_key_id = {{ aws.key }}\naws_secret_access_key = {{ aws.secret}}" > /root/.aws/credentials
+
+  - name: Setup AWS default configuration to root user
+    shell: echo "[default]\noutput = json\nregion = {{ aws.region }}"
+
+  - name: Copy AWS configuration in sudoers's home directory
+    shell: cp -R /root/.aws /home/{{ item.name }}
+    with_items: "{{ unix.users }}"
+
+  become: true
