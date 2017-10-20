@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
+$CONTAINER_NAME='ubuntu-ansible'
+$CONTAINER_IP = $(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' CONTAINER_NAME)
 
 # kill and remove the container if running
 if [[ "$(sudo docker ps | grep jexperton/ubuntu-ansible:latest 2> /dev/null)" != "" ]]; then
-    sudo docker kill test
-    sudo docker rm test
+    sudo docker kill CONTAINER_NAME
+    sudo docker rm CONTAINER_NAME
 fi
 
 # builds the docker test image
@@ -28,11 +30,7 @@ fi
 #fi
 
 # run the test container
-sudo docker run -d -p 4022:22 -p 4080:80 --name test -it jexperton/ubuntu-ansible:latest
+sudo docker run -d -p 4022:22 -p 4080:80 -p 4443:443 --name CONTAINER_NAME -it jexperton/ubuntu-ansible:latest
 
 # run the playbook
-if [ $# -eq 0 ]; then
-    ansible-playbook -i ./hosts playbooks/lamp-test.yml
-else
-    ansible-playbook -i ./hosts $1
-fi
+sh ./run root@CONTAINER_IP $1

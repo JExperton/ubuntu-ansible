@@ -13,6 +13,6 @@ do
     date=$(date +"_%Y-%m-%dT%H:%M")
     mysqldump -u mysqlbackup $db > /tmp/$db$date.sql;
     gzip -f /tmp/$db$date.sql;
-    /usr/local/bin/aws s3 cp /tmp/$db$date.sql.gz s3://{{ s3bucket }}/mysql/$db/$cycle/$(date +"%Y")/$(date +"%B")/$(date +"%d")/;
+    /usr/local/bin/aws s3 cp /tmp/$db$date.sql.gz s3://{{ s3bucket }}/mysql/$cycle/$db/$(date +"%Y")/$(date +"%B")/$(date +"%d")/;
     rm /tmp/$db$date.sql.gz;
 done

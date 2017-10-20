@@ -1,0 +1,30 @@
+---
+- hosts: all
+  remote_user: sysadmin
+
+  vars:
+    user: sysadmin
+    ssh_port: 22
+    default_php: 7.1
+    s3bucket: a-bucket-name
+    memcached_memory_size: 128
+    mysql_user: db_user
+    mysql_passwd: password-here
+    mysql_databases:
+      - [db_name]
+
+  tasks:
+    - include: tasks/install-tools.yml
+    - include: tasks/create-sudoer.yml
+    - include: tasks/configure-ssh.yml
+    - include: tasks/install-fail2ban.yml
+    #- include: tasks/install-aws-cli.yml
+    #- include: tasks/install-mysql.yml
+    - include: tasks/install-php.yml
+      with_items:
+        #- 5.6
+        - 7.1
+      loop_control:
+        loop_var: version
+    - include: tasks/install-memcached.yml
+    - include: tasks/install-apache2.yml
