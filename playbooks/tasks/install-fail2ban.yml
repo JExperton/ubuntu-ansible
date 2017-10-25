@@ -1,11 +1,11 @@
 - block:
   - name: Install fail2ban
-    shell: apt install -y fail2ban
+    apt: name=fail2ban state=latest
 
   - name: Add custom configuration
     copy: src="templates/fail2ban/local.conf" dest="/etc/fail2ban/jail.d/"
 
   - name: Reload fail2ban
-    shell: fail2ban-client reload
+    shell: service fail2ban reload
   
   become: true

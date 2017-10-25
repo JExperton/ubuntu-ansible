@@ -1,18 +1,21 @@
-- name: Apache | Install server
-  apt: name=apache2 state=latest
+- block: 
+  - name: Apache | Install server
+    apt: name=apache2 state=latest
 
-- name: Apache | Start server
-  shell: /etc/init.d/apache2 start
+  - name: Apache | Start server
+    shell: /etc/init.d/apache2 start
 
-- name: Apache | Enable PHP-FPM configuration
-  shell: a2enconf php{{ default_php }}-fpm
+  - name: Apache | Enable PHP-FPM configuration
+    shell: a2enconf php{{ default_php }}-fpm
 
-- name: Apache | Enable Apache modules
-  shell: a2dismod php{{ default_php }} mpm_prefork && a2enmod mpm_event proxy_fcgi rewrite && service apache2 restart
-# shell: a2dismod mpm_event proxy_fcgi && a2enmod php5.6 mpm_prefork && service apache2 restart
+  - name: Apache | Enable Apache modules
+    shell: a2dismod php5.6 php{{ default_php }} mpm_prefork && a2enmod mpm_event proxy_fcgi rewrite && service apache2 restart
+  # shell: a2dismod mpm_event proxy_fcgi && a2enmod php5.6 mpm_prefork && service apache2 restart
 
-- name: Apache | Add info file
-  shell: echo '<?php phpinfo(); ?>' > /var/www/html/index.php && rm -f /var/www/html/index.html
+  - name: Apache | Add info file
+    shell: echo '<?php phpinfo(); ?>' > /var/www/html/index.php && rm -f /var/www/html/index.html
 
-- name: Enable Apache default policy
-  shell: ufw allow Apache\ Full
+  - name: Enable Apache default policy
+    shell: ufw allow Apache\ Full
+
+  become: true

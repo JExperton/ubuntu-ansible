@@ -1,17 +1,17 @@
 - block:
-  - name: Create user "{{ item }}"
+  - name: Create user
     shell: useradd -m -s /bin/bash {{ item }}
     with_items: "{{ unix.users }}"
 
-  - name: Generate "{{ item}}"'s password
+  - name: Generate password
     shell: echo $(openssl rand -base64 32) > /home/{{ item }}/passwd.txt
     with_items: "{{ unix.users }}"
 
-  - name: Change "{{ item }}"'s password
-    shell: echo $(cat /home/{{ item }}/passwd.txt) | chpasswd --crypt-method=SHA512
+  - name: Change password
+    shell: echo '{{ item }}:'$(cat /home/{{ item }}/passwd.txt) | chpasswd --crypt-method=SHA512
     with_items: "{{ unix.users }}"
 
-  - name: Add "{{ item }}" to sudoers
+  - name: Add user to sudoers
     shell: adduser {{ item }} sudo
     with_items: "{{ unix.users }}"
 
@@ -20,13 +20,8 @@
     with_items: "{{ unix.users }}"
 
   - name: Add public keys to user
-    authorized_key:
-      user: "{{ item.0.name }}"
-      state: present
-      key: "{{ item.1 }}"
-    with_subelements: 
-      - "{{ unix.users }}"
-      - authorized_keys
+    copy: src="templates/ssh/authorized_keys" dest="/home/{{ item }}/.ssh/"
+    with_items: "{{ unix.users }}"
 
   - name: Change permissions
     shell: chown -R {{ item }}:{{ item }} /home/{{ item }}/.ssh

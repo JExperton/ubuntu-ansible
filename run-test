@@ -1,36 +1,44 @@
 #!/usr/bin/env bash
-$CONTAINER_NAME='ubuntu-ansible'
-$CONTAINER_IP = $(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' CONTAINER_NAME)
+CONTAINER_NAME='ubuntu-ansible'
+IMAGE_NAME='jexperton/ubuntu-ansible:latest'
 
-# kill and remove the container if running
-if [[ "$(sudo docker ps | grep jexperton/ubuntu-ansible:latest 2> /dev/null)" != "" ]]; then
-    sudo docker kill CONTAINER_NAME
-    sudo docker rm CONTAINER_NAME
-fi
+function containerExists {
+  return "$(sudo docker ps -a | grep $1 2> /dev/null)" != ""
+}
+function startContainer {
+  sudo docker run -d -p 4022:22 -p 4080:80 -p 4443:443 --name $1 -it $2 > /dev/null 2>&1
+}
+function deleteContainer {
+  sudo docker kill $1 > /dev/null 2>&1
+  sudo docker rm $1 > /dev/null 2>&1
+}
+function imageExists {
+  return "$(sudo docker images -q $1 2> /dev/null)" != ""
+}
+function buildImage {
+  sudo docker build -t $1 . > /dev/null 2>&1
+}
+function getContainerIP {
+  return $(docker inspect -f "{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}" $1) 
+}
 
-# builds the docker test image
-if [[ "$(sudo docker images -q jexperton/ubuntu-ansible:latest 2> /dev/null)" == "" ]]; then
-    sudo docker build -t jexperton/ubuntu-ansible:latest .
-fi
+# BEGIN
 
-# install ansible if not installed yet
-if [ ! $(which ansible-playbook) ]; then
-    sudo apt-get update
-    sudo apt-get install -y software-properties-common
-    sudo apt-add-repository ppa:ansible/ansible -y
-    sudo apt-get update
-    sudo apt-get install -y ansible
-fi
+# kill and remove the container if exists
+if containerExists $CONTAINER_NAME; then deleteContainer $CONTAINER_NAME; fi
 
-# copy the host file
-#if [ ! -f /usr/local/etc/ansible/hosts ]; then
-#    sudo mkdir /usr/local/etc/ansible
-#    sudo echo '[lamp]' > /usr/local/etc/ansible/hosts
-#    sudo echo '192.168.99.100:4022' >> /usr/local/etc/ansible/hosts
-#fi
+# build the docker test image
+if ! imageExists $IMAGE_NAME; then buildImage $IMAGE_NAME; fi
 
 # run the test container
-sudo docker run -d -p 4022:22 -p 4080:80 -p 4443:443 --name CONTAINER_NAME -it jexperton/ubuntu-ansible:latest
+startContainer $CONTAINER_NAME $IMAGE_NAME
+
+docker cp rootkey.pub $CONTAINER_NAME:/root/.ssh/authorized_keys
+docker exec -it $CONTAINER_NAME sh -c "chmod 600 /root/.ssh/authorized_keys"
+docker exec -it $CONTAINER_NAME sh -c "ssh-agent -s" > /dev/null 2>&1
+ssh-keygen -f "~/.ssh/known_hosts" -R getContainerIP
+
+printf "\nUse 123456 as root's password\n\n"
 
 # run the playbook
-sh ./run root@CONTAINER_IP $1
+sh ./run root getContainerIP $1

@@ -5,8 +5,8 @@
   - name: Update packages
     shell: apt upgrade -y
 
-  - name: Install {{ item }}
-    shell: apt-get install {{ item }} -y
+  - name: Install tools
+    apt: name={{ item }} state=latest
     with_items:
       - tcptrack
       - htop
